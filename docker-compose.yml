@@ -1,0 +1,64 @@
+version: '3.8'
+services:
+  eureka-server:
+    image: eureka-server
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+
+  config-server:
+    image: config-server
+    build: ./config-server
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./config-repo:/config-repo
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+
+  gateway-service:
+    image: gateway-service
+    build: ./gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_PROFILES_ACTIVE=dev
+
+  auth-service:
+    image: auth-service
+    build: ./auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_PROFILES_ACTIVE=dev
+
+  user-service:
+    image: user-service
+    build: ./user-service
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_PROFILES_ACTIVE=dev
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: useruser
+      POSTGRES_PASSWORD: userpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  frontend:
+    image: frontend
+    build: ./frontend
+    ports:
+      - "4200:4200"
+
+volumes:
+  postgres_data:
